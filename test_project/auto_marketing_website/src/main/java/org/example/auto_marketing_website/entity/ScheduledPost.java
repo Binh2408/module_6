@@ -13,34 +13,36 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "scheduled_posts")
+
 public class ScheduledPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(length = 2000)
+    private String message;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String content;
-
-    private String imageUrl;
+    private String imageUrl; // optional
 
     private LocalDateTime scheduledTime;
 
-    private String platform; // FACEBOOK, WEBSITE, etc.
-
     @Enumerated(EnumType.STRING)
-    private PostStatus status;
+    private PostStatus status = PostStatus.PENDING;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String errorMessage;
+    @Column(length = 2000)
+    private String failedReason;
+
+    @ManyToOne
+    @JoinColumn(name = "page_id")
+    private FacebookPage page;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "facebook_page_id")
-    private FacebookPage facebookPage;
-}
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Enumerated(EnumType.STRING)
+    private Platform platform = Platform.FACEBOOK;
+}

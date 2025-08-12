@@ -6,15 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduledPostDto {
+public class ScheduledRequestDto {
+    private String pageId;
     private String message;
     private String imageUrl;
     private LocalDateTime scheduledTime;
-    private String pageId;
-    private String accessToken;
-    private Long userId;
 }

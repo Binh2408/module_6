@@ -6,24 +6,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "facebook_pages")
+
 public class FacebookPage {
     @Id
-    private String pageId; // chính là ID của trang Facebook
-
-    private String name;
-
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String accessToken;
-
+    private String pageId; // id trang FB
+    private String pageName;
+    @Column(name = "page_access_token", columnDefinition = "TEXT")
+    private String pageAccessToken; // token của trang (để đăng bài)
     @ManyToOne
-    private User user;
+    @JoinColumn(name = "owner_id")
+    private User owner;
 }
-

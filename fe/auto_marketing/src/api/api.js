@@ -1,4 +1,8 @@
 import axios from "axios";
-export async function schedulePost(postData) {
-  return axios.post("http://localhost:8080/api/schedule", postData);
-}
+
+const API = axios.create({
+  baseURL: process.env.REACT_APP_API,
+  withCredentials: true,
+});
+
+export default API;

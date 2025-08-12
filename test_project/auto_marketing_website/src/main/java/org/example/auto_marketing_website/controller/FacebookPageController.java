@@ -1,43 +1,45 @@
 package org.example.auto_marketing_website.controller;
 
-import org.example.auto_marketing_website.dto.FacebookPageDto;
-import org.example.auto_marketing_website.entity.FacebookPage;
-import org.example.auto_marketing_website.entity.User;
-import org.example.auto_marketing_website.service.FacebookPageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/facebook-pages")
 public class FacebookPageController {
-    private FacebookPageService facebookPageService;
 
-    public FacebookPageController(FacebookPageService facebookPageService) {
-        this.facebookPageService = facebookPageService;
-    }
-    // ⚠️ Tạm hardcode user (bạn nên lấy từ SecurityContext hoặc Session thực tế)
-    private User getMockUser() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("demo");
-        return user;
-    }
+    @Autowired
+    private OAuth2AuthorizedClientService authorizedClientService;
 
-    @PostMapping("/sync")
-    public List<FacebookPage> syncPages(@RequestParam("userAccessToken") String userAccessToken) {
-        return facebookPageService.fetchAndSavePages(userAccessToken, getMockUser());
-    }
+    @GetMapping("/api/facebook/pages-list")
+    public ResponseEntity<?> getUserFacebookPages(OAuth2AuthenticationToken authentication) {
+        OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(
+                authentication.getAuthorizedClientRegistrationId(),
+                authentication.getName());
 
-    @GetMapping
-    public List<FacebookPage> getPagesForUser() {
-        return facebookPageService.getPagesByUser(getMockUser());
-    }
+        if (authorizedClient == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
 
-    @PostMapping("/save")
-    public ResponseEntity<?> savePage(@RequestBody FacebookPageDto dto) {
-        facebookPageService.save(dto.getPageId(), dto.getAccessToken(), dto.getName(), getMockUser());
-        return ResponseEntity.ok("Đã lưu page info");
+        String accessToken = authorizedClient.getAccessToken().getTokenValue();
+
+        // Gọi Facebook Graph API để lấy danh sách pages
+        String url = "https://graph.facebook.com/v17.0/me/accounts?access_token=" + accessToken;
+
+        try {
+            // Dùng RestTemplate hoặc WebClient để gọi API Facebook
+            RestTemplate restTemplate = new RestTemplate();
+            Map<?, ?> response = restTemplate.getForObject(url, Map.class);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to fetch pages from Facebook");
+        }
     }
 }
